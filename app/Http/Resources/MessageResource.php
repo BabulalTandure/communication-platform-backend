@@ -20,6 +20,7 @@ class MessageResource extends JsonResource
             'file_url' => $this->file_url,
             'file_name' => $this->file_name,
             'file_size' => $this->file_size,
+            'status' => $this->status ?? 'read',
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

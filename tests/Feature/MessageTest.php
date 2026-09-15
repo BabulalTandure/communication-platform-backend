@@ -99,7 +99,7 @@ class MessageTest extends TestCase
         $imagePath = $imageResponse->json('data.file_path');
         Storage::disk('public')->assertExists($imagePath);
 
-        // 2. Send Voice Note
+        // 2. Send Voice Note (MP3 and M4A)
         $fakeVoice = UploadedFile::fake()->create('note.mp3', 200, 'audio/mpeg');
         $voiceResponse = $this->withToken($token1)
                               ->postJson('/api/chats/' . $chat->id . '/messages', [
@@ -117,6 +117,25 @@ class MessageTest extends TestCase
 
         $voicePath = $voiceResponse->json('data.file_path');
         Storage::disk('public')->assertExists($voicePath);
+
+        // 3. Send Voice Note (.m4a AAC audio in MP4 container)
+        $fakeM4aVoice = UploadedFile::fake()->create('voice_12345.m4a', 200, 'audio/x-m4a');
+        $m4aResponse = $this->withToken($token1)
+                             ->postJson('/api/chats/' . $chat->id . '/messages', [
+                                 'message_type' => 'voice',
+                                 'file' => $fakeM4aVoice,
+                             ]);
+
+        $m4aResponse->assertStatus(201)
+                    ->assertJson([
+                        'success' => true,
+                        'data' => [
+                            'message_type' => 'voice',
+                        ],
+                    ]);
+
+        $m4aPath = $m4aResponse->json('data.file_path');
+        Storage::disk('public')->assertExists($m4aPath);
     }
 
     public function test_non_participant_cannot_send_or_read_messages(): void

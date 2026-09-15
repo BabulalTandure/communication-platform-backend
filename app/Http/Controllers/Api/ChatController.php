@@ -31,6 +31,10 @@ class ChatController extends Controller
         $currentUserId = $request->user()->id;
         $recipientId = (int) $request->recipient_id;
 
+        if ($currentUserId === $recipientId) {
+            return $this->errorResponse('You cannot start a private chat with yourself.', null, 422);
+        }
+
         // Check if recipient is active
         $recipient = User::find($recipientId);
         if (!$recipient || !$recipient->isActive()) {

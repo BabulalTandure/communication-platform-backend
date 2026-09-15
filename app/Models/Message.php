@@ -19,6 +19,7 @@ class Message extends Model
         'file_path',
         'file_name',
         'file_size',
+        'status',
     ];
 
     protected $appends = [

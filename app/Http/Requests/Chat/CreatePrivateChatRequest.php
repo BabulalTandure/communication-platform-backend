@@ -14,14 +14,7 @@ class CreatePrivateChatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'recipient_id' => ['required', 'integer', 'exists:users,id', 'different:' . $this->user()?->id],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'recipient_id.different' => 'You cannot start a private chat with yourself.',
+            'recipient_id' => ['required', 'integer', 'exists:users,id'],
         ];
     }
 }

@@ -99,4 +99,59 @@ class PrivateChatTest extends TestCase
                      'message' => 'Unauthorized access to this conversation.',
                  ]);
     }
+
+    public function test_admin_and_user_can_create_and_reuse_chat(): void
+    {
+        $admin = User::create([
+            'username' => 'admin_user',
+            'password' => 'password123',
+            'role' => 'admin',
+            'status' => 'active',
+        ]);
+
+        $user = User::create([
+            'username' => 'normal_user',
+            'password' => 'password123',
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        $adminToken = $admin->createToken('admin_token')->plainTextToken;
+        $userToken = $user->createToken('user_token')->plainTextToken;
+
+        // Admin initiates chat with user
+        $res1 = $this->actingAs($admin, 'sanctum')
+                     ->postJson('/api/chats/private', ['recipient_id' => $user->id]);
+
+        $res1->assertStatus(201);
+        $chatId = $res1->json('data.id');
+
+        // User initiates chat with admin - should return existing chat
+        $res2 = $this->actingAs($user, 'sanctum')
+                     ->postJson('/api/chats/private', ['recipient_id' => $admin->id]);
+
+        $res2->assertStatus(200)
+             ->assertJson(['data' => ['id' => $chatId]]);
+
+        $this->assertEquals(1, Chat::where('type', 'private')->count());
+    }
+
+    public function test_user_cannot_chat_with_self(): void
+    {
+        $user = User::create([
+            'username' => 'self_user',
+            'password' => 'password123',
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+                         ->postJson('/api/chats/private', ['recipient_id' => $user->id]);
+
+        $response->assertStatus(422)
+                 ->assertJson([
+                     'success' => false,
+                     'message' => 'You cannot start a private chat with yourself.',
+                 ]);
+    }
 }

@@ -10,6 +10,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -46,5 +47,24 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return $this->successResponse(new UserResource($request->user()), 'Profile retrieved successfully.');
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+        ]);
+
+        if ($request->hasFile('profile_image')) {
+            if ($user->profile_image) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+            $user->profile_image = $request->file('profile_image')->store('users/avatars', 'public');
+            $user->save();
+        }
+
+        return $this->successResponse(new UserResource($user), 'Profile updated successfully.');
     }
 }
