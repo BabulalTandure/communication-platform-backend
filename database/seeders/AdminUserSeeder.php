@@ -10,6 +10,7 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Default Admin User
         User::firstOrCreate(
             ['username' => 'admin'],
             [
@@ -17,6 +18,17 @@ class AdminUserSeeder extends Seeder
                 'role' => 'admin',
                 'status' => 'active',
                 'created_by' => null,
+            ]
+        );
+
+        // Default Normal User
+        User::firstOrCreate(
+            ['username' => 'user1'],
+            [
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+                'status' => 'active',
+                'created_by' => 1,
             ]
         );
     }
